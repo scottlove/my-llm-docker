@@ -15,14 +15,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create models directory
-RUN mkdir -p /app/models
-
 # Copy application code
 COPY app.py .
 
-# Copy the downloaded model (this will be available during build)
-COPY models/ /app/models/
+# Create models directory (model will be copied during build process)
+RUN mkdir -p /app/models
 
 # Expose port for the API
 EXPOSE 8000
