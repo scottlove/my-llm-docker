@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from llama_cpp import Llama
 import os
 import uvicorn
+from huggingface_hub import hf_hub_download
 
 # Request/Response models
 
@@ -28,7 +29,29 @@ llm = None
 @app.on_event("startup")
 async def load_model():
     global llm
-    model_path = "/app/models/M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q2_k.gguf"
+    model_dir = "/app/models"
+    model_filename = "M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q2_k.gguf"
+    model_path = f"{model_dir}/{model_filename}"
+
+    # Create models directory
+    os.makedirs(model_dir, exist_ok=True)
+
+    # Download model if it doesn't exist
+    if not os.path.exists(model_path):
+        print("Model not found, downloading from Hugging Face...")
+        try:
+            hf_hub_download(
+                repo_id="DavidAU/Mistral-MOE-4X7B-Dark-MultiVerse-Uncensored-Enhanced32-24B-gguf",
+                filename=model_filename,
+                local_dir=model_dir,
+                local_dir_use_symlinks=False
+            )
+            print("Model download complete!")
+        except Exception as e:
+            print(f"Error downloading model: {e}")
+            raise
+    else:
+        print("Model already exists, skipping download")
 
     print("Loading LLM model...")
     try:
@@ -36,7 +59,7 @@ async def load_model():
             model_path=model_path,
             n_ctx=2048,
             n_threads=2,
-            verbose=True,  # Enable verbose logging
+            verbose=False,
             n_gpu_layers=0
         )
         print("Model loaded successfully!")
@@ -63,22 +86,17 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
-        print(f"Input prompt: '{request.message}'")
-
-        # Try with more explicit parameters
         response = llm(
             request.message,
             max_tokens=request.max_tokens,
             temperature=request.temperature,
             top_p=0.9,
             repeat_penalty=1.1,
-            stop=[],  # Remove all stop sequences temporarily
+            stop=[],
             echo=False
         )
 
         generated_text = response['choices'][0]['text']
-        print(f"Raw response: '{generated_text}'")
-        print(f"Response usage: {response['usage']}")
 
         return ChatResponse(
             response=generated_text.strip(),
