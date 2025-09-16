@@ -1,0 +1,37 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - echo Downloading model from Hugging Face...
+      - pip install huggingface_hub
+      - mkdir -p models
+      - python -c "
+        from huggingface_hub import hf_hub_download;
+        print('Starting model download...');
+        hf_hub_download(
+          repo_id='DavidAU/Mistral-MOE-4X7B-Dark-MultiVerse-Uncensored-Enhanced32-24B-gguf',
+          filename='M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q4_k_m.gguf',
+          local_dir='./models'
+        );
+        print('Model download complete!')
+        "
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t my-llm-docker .
+      - docker tag my-llm-docker:latest $IMAGE_REPO_URI:latest
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $IMAGE_REPO_URI:latest
+      - echo Writing image definitions file...
+      - printf '[{"name":"my-llm-container","imageUri":"%s"}]' $IMAGE_REPO_URI:latest > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json

@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+
+# Model files (don't commit these!)
+models/
+*.gguf
+
+# Docker
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
