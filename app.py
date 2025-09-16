@@ -37,8 +37,8 @@ async def load_model():
     try:
         llm = Llama(
             model_path=model_path,
-            n_ctx=2048,  # Context length
-            n_threads=4,  # Adjust based on your container resources
+            n_ctx=1024,  # Context length
+            n_threads=2,  # Adjust based on your container resources
             verbose=False
         )
         print("Model loaded successfully!")
