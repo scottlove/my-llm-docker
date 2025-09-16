@@ -1,6 +1,3 @@
-from llama_cpp import Llama
-import os
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from llama_cpp import Llama
@@ -37,9 +34,10 @@ async def load_model():
     try:
         llm = Llama(
             model_path=model_path,
-            n_ctx=1024,  # Context length
-            n_threads=2,  # Adjust based on your container resources
-            verbose=False
+            n_ctx=2048,
+            n_threads=2,
+            verbose=True,  # Enable verbose logging
+            n_gpu_layers=0
         )
         print("Model loaded successfully!")
     except Exception as e:
@@ -65,18 +63,29 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
+        print(f"Input prompt: '{request.message}'")
+
+        # Try with more explicit parameters
         response = llm(
             request.message,
             max_tokens=request.max_tokens,
             temperature=request.temperature,
-            stop=["</s>", "\n\n"]  # Stop sequences
+            top_p=0.9,
+            repeat_penalty=1.1,
+            stop=[],  # Remove all stop sequences temporarily
+            echo=False
         )
 
+        generated_text = response['choices'][0]['text']
+        print(f"Raw response: '{generated_text}'")
+        print(f"Response usage: {response['usage']}")
+
         return ChatResponse(
-            response=response['choices'][0]['text'].strip(),
+            response=generated_text.strip(),
             tokens_used=response['usage']['total_tokens']
         )
     except Exception as e:
+        print(f"Generation error: {e}")
         raise HTTPException(
             status_code=500, detail=f"Error generating response: {str(e)}")
 
