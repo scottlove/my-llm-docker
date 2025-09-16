@@ -11,7 +11,8 @@ phases:
       - echo Creating models directory...
       - mkdir -p models
       - echo Starting model download...
-      - python3 -c "
+      - |
+        python3 -c "
         import os
         from huggingface_hub import hf_hub_download
         print('Starting model download...')
@@ -39,6 +40,8 @@ phases:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
       - docker push $IMAGE_REPO_URI:latest
+      - echo Writing image definitions file...
+      - printf '[{"name":"my-llm-container","imageUri":"%s"}]' $IMAGE_REPO_URI:latest > imagedefinitions.json
 
 artifacts:
   files:
