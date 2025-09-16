@@ -6,17 +6,16 @@ from huggingface_hub import hf_hub_download
 print("Starting model download...")
 
 try:
-    # Use Q3_K_M instead of Q4_K_M - smaller memory footprint
     hf_hub_download(
         repo_id="DavidAU/Mistral-MOE-4X7B-Dark-MultiVerse-Uncensored-Enhanced32-24B-gguf",
-        filename="M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q3_k_m.gguf",  # Smaller model
+        filename="M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q2_k.gguf",  # Smaller model!
         local_dir="./models",
         local_dir_use_symlinks=False
     )
     print("Model download complete!")
 
     # Verify file exists
-    model_path = "./models/M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q3_k_m.gguf"
+    model_path = "./models/M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q2_k.gguf"
     if os.path.exists(model_path):
         size = os.path.getsize(model_path) / (1024**3)  # GB
         print(f"Model file exists: {size:.2f} GB")

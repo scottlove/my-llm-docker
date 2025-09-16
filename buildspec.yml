@@ -5,19 +5,29 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - echo Installing dependencies...
+      - pip install --upgrade pip huggingface_hub
+      - echo Creating models directory...
+      - mkdir -p models
+      - echo Downloading model...
+      - python3 download_model.py
+      - echo Verifying model download...
+      - ls -la models/
   build:
     commands:
-      - echo Build started on date
-      - echo Building the Docker image with model download...
+      - echo Build started
+      - echo Building the Docker image...
       - docker build -t my-llm-docker .
-      - echo Tagging with URI $IMAGE_REPO_URI:latest
+      - echo Copying model into the built image...
+      - docker run --name temp-container my-llm-docker:latest /bin/true
+      - docker cp models/M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q2_k.gguf temp-container:/app/models/
+      - docker commit temp-container my-llm-docker:latest
+      - docker rm temp-container
       - docker tag my-llm-docker:latest $IMAGE_REPO_URI:latest
   post_build:
     commands:
-      - echo Build completed on date
-      - echo Pushing the Docker image...
+      - echo Build completed
       - docker push $IMAGE_REPO_URI:latest
-      - echo Writing image definitions file...
       - printf '[{"name":"my-llm-container","imageUri":"%s"}]' $IMAGE_REPO_URI:latest > imagedefinitions.json
 
 artifacts:

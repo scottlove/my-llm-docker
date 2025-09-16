@@ -31,7 +31,7 @@ llm = None
 @app.on_event("startup")
 async def load_model():
     global llm
-    model_path = "/app/models/M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q4_k_m.gguf"
+    model_path = "/app/models/M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q2_k.gguf"
 
     print("Loading LLM model...")
     try:

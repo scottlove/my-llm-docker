@@ -18,10 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY app.py .
 
-# Create models directory and download model during Docker build
+# Create models directory (model will be copied during build process)
 RUN mkdir -p /app/models
-COPY download_model.py .
-RUN python3 download_model.py
 
 # Expose port for the API
 EXPOSE 8000
