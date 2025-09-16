@@ -1,48 +1,31 @@
-version: 0.2
+# Use AWS public ECR instead of Docker Hub to avoid rate limits
+FROM public.ecr.aws/docker/library/python:3.9-slim
 
-phases:
-  pre_build:
-    commands:
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      - echo Installing dependencies...
-      - pip install --upgrade pip
-      - pip install huggingface_hub requests
-      - echo Creating models directory...
-      - mkdir -p models
-      - echo Starting model download...
-      - |
-        python3 -c "
-        import os
-        from huggingface_hub import hf_hub_download
-        print('Starting model download...')
-        try:
-            hf_hub_download(
-                repo_id='DavidAU/Mistral-MOE-4X7B-Dark-MultiVerse-Uncensored-Enhanced32-24B-gguf',
-                filename='M-MOE-4X7B-Dark-MultiVerse-UC-E32-24B-D_AU-Q4_k_m.gguf',
-                local_dir='./models',
-                local_dir_use_symlinks=False
-            )
-            print('Model download complete!')
-        except Exception as e:
-            print(f'Download error: {e}')
-            exit(1)
-        "
-      - ls -la models/
-  build:
-    commands:
-      - echo Build started on `date`
-      - echo Building the Docker image...
-      - docker build -t my-llm-docker .
-      - docker tag my-llm-docker:latest $IMAGE_REPO_URI:latest
-  post_build:
-    commands:
-      - echo Build completed on `date`
-      - echo Pushing the Docker image...
-      - docker push $IMAGE_REPO_URI:latest
-      - echo Writing image definitions file...
-      - printf '[{"name":"my-llm-container","imageUri":"%s"}]' $IMAGE_REPO_URI:latest > imagedefinitions.json
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
-artifacts:
-  files:
-    - imagedefinitions.json
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Create models directory
+RUN mkdir -p /app/models
+
+# Copy application code
+COPY app.py .
+
+# Copy the downloaded model (this will be available during build)
+COPY models/ /app/models/
+
+# Expose port (if you add a web server later)
+EXPOSE 8000
+
+# Run the application
+CMD ["python", "app.py"]
