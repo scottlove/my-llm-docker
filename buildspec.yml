@@ -11,7 +11,7 @@ phases:
       - mkdir -p models
       - echo Downloading model...
       - python3 download_model.py
-      - echo DEBUG - Environment variables:
+      - echo DEBUG - Environment variables
       - echo AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
       - echo AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID
       - echo IMAGE_REPO_URI=$IMAGE_REPO_URI
