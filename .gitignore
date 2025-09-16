@@ -9,9 +9,6 @@ __pycache__/
 models/
 *.gguf
 
-# Docker
-.dockerignore
-
 # OS
 .DS_Store
 Thumbs.db

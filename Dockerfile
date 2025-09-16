@@ -1,4 +1,5 @@
-FROM python:3.9-slim
+# Use AWS public ECR instead of Docker Hub to avoid rate limits
+FROM public.ecr.aws/docker/library/python:3.9-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -20,11 +21,11 @@ RUN mkdir -p /app/models
 # Copy application code
 COPY app.py .
 
-# The model will be downloaded during the build process
-# (We'll handle this in buildspec.yml)
+# Copy the downloaded model (this will be available during build)
+COPY models/ /app/models/
 
-# Expose port (if you add a web server later)
+# Expose port for the API
 EXPOSE 8000
 
-# Run the application
-CMD ["python", "app.py"]
+# Run the FastAPI application
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
